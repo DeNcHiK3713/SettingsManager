@@ -53,7 +53,7 @@ namespace Settings
             var s = sections.OfType<T>().SingleOrDefault();
             sections?.Remove(s);
             sections.Add(data);
-            provider.SetSection<T>(data);
+            provider.SetSection(data);
         }
 
         private void LoadSettings()
