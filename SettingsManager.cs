@@ -1,6 +1,8 @@
-using Settings.Serializers;
+﻿using Settings.Serializers;
 using System;
+using System.Linq;
 using System.IO;
+using System.Collections.Generic;
 
 namespace Settings
 {
@@ -10,6 +12,7 @@ namespace Settings
 
         private string configPath;
         private ISerializer provider;
+        private HashSet<object> sections = new HashSet<object>();
 
         #endregion Fields
 
@@ -24,32 +27,35 @@ namespace Settings
                 var ex = new FileNotFoundException(nameof(_configPath));
                 throw ex;
             }
-            switch (Path.GetExtension(_configPath))
-            {
-                case ".json":
-                    provider = new JsonSerializer();
-                    break;
-
-                case ".xml":
-                    provider = new XmlSerializer();
-                    break;
-
-                default:
-                    var ex = new Exception($"Unknown extension {Path.GetExtension(_configPath)}.");
-                    throw ex;
-            }
+            provider = new JsonSerializer();
             configPath = _configPath;
             AppDomain.CurrentDomain.ProcessExit += (s, e) => SaveSettings();
             LoadSettings();
         }
 
-        public T GetSection<T>()
+        public T GetSection<T>() where T : new()
         {
-            return provider.GetSection<T>();
+            var s = sections.OfType<T>().SingleOrDefault();
+            if (s == null)
+            {
+                s = provider.GetSection<T>() ?? new T();
+                sections.Add(s);
+            }
+            return s;
         }
 
-        public void SetSection<T>(T data)
+        private void SetSection(object data)
         {
+            provider.SetSection(data);
+        }
+        public void SetSection<T>(T data) where T : new()
+        {
+            var s = sections.OfType<T>().SingleOrDefault();
+            if (s != null)
+            {
+                sections.Remove(s);
+            }
+            sections.Add(data);
             provider.SetSection<T>(data);
         }
 
@@ -60,6 +66,10 @@ namespace Settings
 
         public void SaveSettings()
         {
+            foreach (var s in sections)
+            {
+                SetSection(s);
+            }
             provider.Save(configPath);
         }
     }

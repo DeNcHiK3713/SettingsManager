@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Xml.Linq;
 using System.Xml.Schema;
 
@@ -43,6 +43,24 @@ namespace Settings.Serializers
                 var serializer = new System.Xml.Serialization.XmlSerializer(typeof(T));
                 var obj = serializer.Deserialize(sr);
                 return obj == null ? default : (T)obj;
+            }
+        }
+
+        void ISerializer.SetSection(object data)
+        {
+            var serializer = new System.Xml.Serialization.XmlSerializer(data.GetType());
+            using (var sw = new StringWriter())
+            {
+                serializer.Serialize(sw, data);
+                var element = xDoc.Root.Element(data.GetType().Name);
+                if (element == null)
+                {
+                    xDoc.Root.Add(XElement.Parse(sw.ToString()));
+                }
+                else
+                {
+                    element.ReplaceWith(XElement.Parse(sw.ToString()));
+                }
             }
         }
 

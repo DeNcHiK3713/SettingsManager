@@ -1,4 +1,4 @@
-namespace Settings.Serializers
+﻿namespace Settings.Serializers
 {
     public interface ISerializer
     {
@@ -6,8 +6,9 @@ namespace Settings.Serializers
 
         void Save(string path);
 
-        T GetSection<T>();
+        T GetSection<T>() where T : new();
+        void SetSection(object data);
 
-        void SetSection<T>(T data);
+        void SetSection<T>(T data) where T : new();
     }
 }

@@ -1,4 +1,4 @@
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System.IO;
 
 namespace Settings.Serializers
@@ -26,6 +26,11 @@ namespace Settings.Serializers
         void ISerializer.SetSection<T>(T data)
         {
             jobject["Settings"][typeof(T).Name] = JToken.FromObject(data);
+        }
+
+        void ISerializer.SetSection(object data)
+        {
+            jobject["Settings"][data.GetType().Name] = JToken.FromObject(data);
         }
     }
 }
