@@ -33,7 +33,7 @@ namespace Settings
             LoadSettings();
         }
 
-        public T GetSection<T>() where T : new()
+        public T GetSection<T>() where T : class, new()
         {
             var s = sections.OfType<T>().SingleOrDefault();
             if (s == null)
